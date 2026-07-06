@@ -9,8 +9,7 @@ elif age >= 18 and age < 65:
     print("You are an adult and allowed to drive.")
 else:
     print("You are a senior citizen and allowed to vote.")
-<<<<<<< Updated upstream
+
     print("You are a senior citizen and not allowed to drive.")
-=======
+
     print("You are a senior citizen and not allowed to drive.") 
->>>>>>> Stashed changes
