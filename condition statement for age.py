@@ -12,4 +12,4 @@ else:
 
     print("You are a senior citizen and not allowed to drive.")
 
-    print("You are a senior citizen and not allowed to drive.") 
+    print("You are a senior citizen and not allowed to drive.")
