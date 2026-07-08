@@ -1,6 +1,4 @@
-stg3 = (input("Enter to check if it's a palindrome "))
-
-list1 = [stg3]
+list1 = [1 , 4 ,5]
 
 listc = list1.copy()
 listc.reverse()
