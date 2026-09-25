@@ -29,6 +29,11 @@ targets = [
      V[i][1] + (j / 10) * (V[i + 1][1] - V[i][1]))
     for i in range(len(V) - 1) for j in range(10)
 ]
+
+# --- Timing: total animation duration in seconds ---
+TOTAL_DURATION = 15
+delay_per_step = TOTAL_DURATION / len(targets)
+
 for i, (tx, ty) in enumerate(targets):
     col = C[i % len(C)]
     p.pencolor(col); p.width(1)
@@ -40,6 +45,6 @@ for i, (tx, ty) in enumerate(targets):
         dx, dy = 5 * m.cos(r), 5 * m.sin(r)
         p.penup(); p.goto(tx - dx, ty - dy); p.pendown(); p.goto(tx + dx, ty + dy)
 
-    s.update(); time.sleep(0.02)
+    s.update(); time.sleep(delay_per_step)
 
 s.update(); t.done()
