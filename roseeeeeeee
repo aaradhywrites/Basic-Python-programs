@@ -1,0 +1,374 @@
+import turtle
+import math
+import time
+
+# =========================================================
+# FULLSCREEN SETUP
+# =========================================================
+
+screen = turtle.Screen()
+screen.bgcolor("#000000")
+screen.setup(width=1.0, height=1.0)
+screen.getcanvas().winfo_toplevel().attributes("-fullscreen", True)
+
+# ESC = exit fullscreen
+screen.getcanvas().winfo_toplevel().bind(
+    "<Escape>",
+    lambda e: screen.getcanvas().winfo_toplevel().attributes("-fullscreen", False)
+)
+
+screen.title("Growing Rose")
+screen.tracer(0, 0)
+
+t = turtle.Turtle()
+t.speed(0)
+t.hideturtle()
+t.penup()
+
+# =========================================================
+# COLORS
+# =========================================================
+
+SKY_TOP = "#000000"
+SKY_BOTTOM = "#000000"
+GROUND = "#000000"
+GROUND_LINE = "#111111"
+
+STEM = "#2e5e2a"
+STEM_LIGHT = "#5c9450"
+LEAF = "#2e6b2e"
+LEAF_LIGHT = "#57a34f"
+LEAF_EDGE = "#1f4a20"
+
+OUTER = "#7a0e26"
+OUTER_EDGE = "#4d0616"
+MID = "#a3132f"
+MID_EDGE = "#750c22"
+INNER = "#c81f3f"
+INNER_EDGE = "#8f1229"
+CENTER = "#e8355a"
+CENTER_EDGE = "#b31d3a"
+
+SEPAL = "#2e6b2e"
+
+Y = -40  # top of stem / base of bloom
+
+
+# =========================================================
+# POLYGON / ELLIPSE HELPERS
+# =========================================================
+
+def polygon(points, fill, outline=None, width=1.5):
+    t.width(width)
+    t.fillcolor(fill)
+    t.pencolor(outline if outline else fill)
+    t.penup()
+    t.goto(points[0])
+    t.pendown()
+    t.begin_fill()
+    for p in points[1:]:
+        t.goto(p)
+    t.goto(points[0])
+    t.end_fill()
+    t.penup()
+
+
+def ellipse(cx, cy, rx, ry, color, outline=None):
+    points = []
+    for i in range(73):
+        a = 2 * math.pi * i / 72
+        points.append((cx + rx * math.cos(a), cy + ry * math.sin(a)))
+    polygon(points, color, outline)
+
+
+# =========================================================
+# BACKGROUND: soft gradient sky + grassy ground
+# =========================================================
+
+def draw_background():
+    bands = 24
+    top_y, bot_y = 700, -260
+    c1 = tuple(int(SKY_TOP[i:i + 2], 16) for i in (1, 3, 5))
+    c2 = tuple(int(SKY_BOTTOM[i:i + 2], 16) for i in (1, 3, 5))
+    step = (top_y - bot_y) / bands
+    for i in range(bands):
+        y0 = top_y - i * step
+        y1 = y0 - step
+        f = i / (bands - 1)
+        r = int(c1[0] + (c2[0] - c1[0]) * f)
+        g = int(c1[1] + (c2[1] - c1[1]) * f)
+        b = int(c1[2] + (c2[2] - c1[2]) * f)
+        color = "#%02x%02x%02x" % (r, g, b)
+        t.fillcolor(color)
+        t.pencolor(color)
+        t.goto(-1000, y0)
+        t.pendown()
+        t.begin_fill()
+        t.goto(1000, y0)
+        t.goto(1000, y1)
+        t.goto(-1000, y1)
+        t.goto(-1000, y0)
+        t.end_fill()
+        t.penup()
+
+    t.fillcolor(GROUND)
+    t.pencolor(GROUND)
+    t.goto(-1000, -260)
+    t.pendown()
+    t.begin_fill()
+    t.goto(1000, -260)
+    t.goto(1000, -700)
+    t.goto(-1000, -700)
+    t.goto(-1000, -260)
+    t.end_fill()
+    t.penup()
+
+    t.pencolor(GROUND_LINE)
+    t.width(2)
+    for gx in range(-480, 500, 36):
+        by = -260 - (abs(gx) % 40) * 0.3
+        t.goto(gx, by)
+        t.pendown()
+        t.goto(gx - 6, by - 22)
+        t.penup()
+
+
+# =========================================================
+# STEM with thorns
+# =========================================================
+
+def _stem_curve(x_amp, y0, y1, steps=40):
+    pts = []
+    for i in range(steps + 1):
+        u = i / steps
+        y = y0 + (y1 - y0) * u
+        x = x_amp * math.sin(math.pi * 1.1 * u)
+        pts.append((x, y))
+    return pts
+
+
+def draw_thorn(x, y, angle_deg, size=14):
+    rad = math.radians(angle_deg)
+    perp = rad + math.pi / 2
+    base1 = (x + math.cos(perp) * 3, y + math.sin(perp) * 3)
+    base2 = (x - math.cos(perp) * 3, y - math.sin(perp) * 3)
+    tip = (x + math.cos(rad) * size, y + math.sin(rad) * size)
+    polygon([base1, tip, base2], "#4a7a30", "#274d1c", width=1)
+
+
+def draw_stem():
+    t.pencolor(STEM)
+    t.width(11)
+    pts = _stem_curve(10, -260, Y)
+    t.goto(pts[0])
+    t.pendown()
+    for p in pts[1:]:
+        t.goto(p)
+    t.penup()
+
+    t.pencolor(STEM_LIGHT)
+    t.width(3)
+    pts2 = _stem_curve(10, -253, Y)
+    t.goto(pts2[0][0] + 2, pts2[0][1])
+    t.pendown()
+    for p in pts2[1:]:
+        t.goto(p[0] + 2, p[1])
+    t.penup()
+
+    for u, side in [(0.18, 45), (0.4, -135), (0.62, 40), (0.82, -140)]:
+        i = int(u * (len(pts) - 1))
+        x, y = pts[i]
+        draw_thorn(x, y, side)
+
+
+# =========================================================
+# COMPOUND LEAF (pinnate, serrated leaflets)
+# =========================================================
+
+def leaflet_points(length, width, teeth=7, tooth_amp=2.2):
+    pts = []
+    steps = 40
+    for i in range(steps + 1):
+        u = i / steps
+        x = length * u
+        env = math.sin(math.pi * u) ** 0.65
+        tooth = tooth_amp * env * (0.5 + 0.5 * math.sin(u * teeth * 2 * math.pi))
+        y = width * env + tooth
+        pts.append((x, y))
+    for i in range(steps, -1, -1):
+        u = i / steps
+        x = length * u
+        env = math.sin(math.pi * u) ** 0.65
+        tooth = tooth_amp * env * (0.5 + 0.5 * math.sin(u * teeth * 2 * math.pi + math.pi))
+        y = -(width * env + tooth)
+        pts.append((x, y))
+    return pts
+
+
+def draw_leaflet(cx, cy, angle_deg, length, width):
+    rad = math.radians(angle_deg)
+    raw = leaflet_points(length, width)
+    pts = []
+    for (x, y) in raw:
+        rx = x * math.cos(rad) - y * math.sin(rad)
+        ry = x * math.sin(rad) + y * math.cos(rad)
+        pts.append((cx + rx, cy + ry))
+    polygon(pts, LEAF, LEAF_EDGE, width=1.3)
+
+    t.pencolor(LEAF_LIGHT)
+    t.width(1.2)
+    t.goto(cx, cy)
+    t.pendown()
+    t.goto(cx + length * 0.9 * math.cos(rad), cy + length * 0.9 * math.sin(rad))
+    t.penup()
+
+
+def draw_compound_leaf(base_x, base_y, angle_deg, scale=1.0):
+    rad = math.radians(angle_deg)
+    stalk_len = 34 * scale
+    tip = (base_x + stalk_len * math.cos(rad), base_y + stalk_len * math.sin(rad))
+
+    t.pencolor(STEM)
+    t.width(4)
+    t.goto(base_x, base_y)
+    t.pendown()
+    t.goto(tip)
+    t.penup()
+
+    side_a = angle_deg + 55
+    side_b = angle_deg - 55
+    mid = (base_x + stalk_len * 0.55 * math.cos(rad), base_y + stalk_len * 0.55 * math.sin(rad))
+
+    draw_leaflet(mid[0], mid[1], side_a, 34 * scale, 13 * scale)
+    draw_leaflet(mid[0], mid[1], side_b, 34 * scale, 13 * scale)
+    draw_leaflet(tip[0], tip[1], angle_deg, 40 * scale, 15 * scale)
+
+
+# =========================================================
+# ROSE PETAL - pointed base, rounded bulb tip. This is what
+# gives a rose its fuller, cupped look (a lotus petal, by
+# contrast, tapers to a point at both ends).
+# =========================================================
+
+def petal_points(length, half_width, steps=22, cap_steps=16):
+    body_len = length - half_width
+    pts = [(0.0, 0.0)]
+    for i in range(1, steps + 1):
+        u = i / steps
+        x = body_len * u
+        y = half_width * math.sin(math.pi / 2 * u)
+        pts.append((x, y))
+    for i in range(cap_steps + 1):
+        a = 90 - 180 * i / cap_steps
+        rad = math.radians(a)
+        x = body_len + half_width * math.cos(rad)
+        y = half_width * math.sin(rad)
+        pts.append((x, y))
+    for i in range(steps - 1, -1, -1):
+        u = i / steps
+        x = body_len * u
+        y = -half_width * math.sin(math.pi / 2 * u)
+        pts.append((x, y))
+    return pts
+
+
+def draw_petal(cx, cy, angle_deg, length, half_width, color, edge,
+               cup=0.0, offset=0.0, width_line=1.4):
+    rad = math.radians(angle_deg)
+    raw = petal_points(length, half_width)
+    pts = []
+    for (x, y) in raw:
+        bend = cup * (x / length) ** 2 if length else 0
+        rx = x * math.cos(rad) - (y + bend) * math.sin(rad)
+        ry = x * math.sin(rad) + (y + bend) * math.cos(rad)
+        pts.append((cx + rx + offset * math.cos(rad + math.pi / 2),
+                     cy + ry + offset * math.sin(rad + math.pi / 2)))
+    polygon(pts, color, edge, width=width_line)
+
+    t.pencolor(edge)
+    t.width(0.8)
+    t.goto(cx, cy)
+    t.pendown()
+    tip = (cx + length * 0.85 * math.cos(rad), cy + length * 0.85 * math.sin(rad))
+    t.goto(tip)
+    t.penup()
+
+
+def draw_sepals(cx, cy):
+    for a in range(0, 360, 72):
+        draw_petal(cx, cy, a, 95, 12, SEPAL, "#1e4a1e", cup=2)
+
+
+# =========================================================
+# FULL ROSE BLOOM
+# =========================================================
+
+def draw_rose():
+    cx, cy = 0, Y + 55
+
+    draw_sepals(cx, cy)
+    screen.update()
+    time.sleep(0.15)
+
+    outer_angles = [0, 45, 90, 135, 180, 225, 270, 315]
+    for a in outer_angles:
+        draw_petal(cx, cy, a, 128, 46, OUTER, OUTER_EDGE, cup=14)
+        screen.update()
+        time.sleep(0.05)
+
+    mid_angles = [25, 76, 128, 180, 231, 283, 334]
+    for a in mid_angles:
+        draw_petal(cx, cy, a, 100, 37, MID, MID_EDGE, cup=10)
+        screen.update()
+        time.sleep(0.06)
+
+    inner_angles = [15, 75, 135, 195, 255, 315]
+    for a in inner_angles:
+        draw_petal(cx, cy, a, 72, 27, INNER, INNER_EDGE, cup=7)
+        screen.update()
+        time.sleep(0.07)
+
+    center_angles = [0, 72, 144, 216, 288]
+    for i, a in enumerate(center_angles):
+        draw_petal(cx, cy, a + i * 12, 40, 16, CENTER, CENTER_EDGE, cup=5, offset=3)
+        screen.update()
+        time.sleep(0.08)
+
+    for i, a in enumerate([30, 120, 210, 300]):
+        draw_petal(cx, cy, a + i * 18, 20, 9, "#f0557a", "#c8375c", cup=3)
+    screen.update()
+
+
+# =========================================================
+# ANIMATION
+# =========================================================
+
+draw_background()
+screen.update()
+time.sleep(0.4)
+
+draw_stem()
+screen.update()
+time.sleep(0.4)
+
+draw_compound_leaf(-6, -190, 205, scale=1.15)
+screen.update()
+time.sleep(0.2)
+
+draw_compound_leaf(5, -120, 20, scale=0.95)
+screen.update()
+time.sleep(0.4)
+
+draw_rose()
+
+t.pencolor("#e7c9d6")
+t.goto(0, -430)
+t.write("ROSE", align="center", font=("Arial", 22, "bold"))
+screen.update()
+
+# =========================================================
+# RUN
+# =========================================================
+
+screen.tracer(0, 0)
+screen.mainloop()
