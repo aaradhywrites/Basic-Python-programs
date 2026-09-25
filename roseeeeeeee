@@ -2,16 +2,13 @@ import turtle
 import math
 import time
 
-# =========================================================
-# FULLSCREEN SETUP
-# =========================================================
+
 
 screen = turtle.Screen()
 screen.bgcolor("#000000")
 screen.setup(width=1.0, height=1.0)
 screen.getcanvas().winfo_toplevel().attributes("-fullscreen", True)
 
-# ESC = exit fullscreen
 screen.getcanvas().winfo_toplevel().bind(
     "<Escape>",
     lambda e: screen.getcanvas().winfo_toplevel().attributes("-fullscreen", False)
@@ -40,23 +37,21 @@ LEAF = "#2e6b2e"
 LEAF_LIGHT = "#57a34f"
 LEAF_EDGE = "#1f4a20"
 
-OUTER = "#7a0e26"
-OUTER_EDGE = "#4d0616"
-MID = "#a3132f"
-MID_EDGE = "#750c22"
-INNER = "#c81f3f"
-INNER_EDGE = "#8f1229"
-CENTER = "#e8355a"
-CENTER_EDGE = "#b31d3a"
+OUTER = "#0a7abb"
+OUTER_EDGE = "#3220d3"
+MID = "#0f92cf"
+MID_EDGE = "#4028aa"
+INNER = "#25cae7"
+INNER_EDGE = "#07ca99"
+CENTER = "#5819bd"
+CENTER_EDGE = "#1db3e0"
 
 SEPAL = "#2e6b2e"
 
-Y = -40  # top of stem / base of bloom
+Y = -40  
 
 
-# =========================================================
-# POLYGON / ELLIPSE HELPERS
-# =========================================================
+
 
 def polygon(points, fill, outline=None, width=1.5):
     t.width(width)
@@ -81,9 +76,7 @@ def ellipse(cx, cy, rx, ry, color, outline=None):
     polygon(points, color, outline)
 
 
-# =========================================================
-# BACKGROUND: soft gradient sky + grassy ground
-# =========================================================
+
 
 def draw_background():
     bands = 24
@@ -133,9 +126,7 @@ def draw_background():
         t.penup()
 
 
-# =========================================================
-# STEM with thorns
-# =========================================================
+
 
 def _stem_curve(x_amp, y0, y1, steps=40):
     pts = []
@@ -181,9 +172,6 @@ def draw_stem():
         draw_thorn(x, y, side)
 
 
-# =========================================================
-# COMPOUND LEAF (pinnate, serrated leaflets)
-# =========================================================
 
 def leaflet_points(length, width, teeth=7, tooth_amp=2.2):
     pts = []
@@ -244,12 +232,6 @@ def draw_compound_leaf(base_x, base_y, angle_deg, scale=1.0):
     draw_leaflet(tip[0], tip[1], angle_deg, 40 * scale, 15 * scale)
 
 
-# =========================================================
-# ROSE PETAL - pointed base, rounded bulb tip. This is what
-# gives a rose its fuller, cupped look (a lotus petal, by
-# contrast, tapers to a point at both ends).
-# =========================================================
-
 def petal_points(length, half_width, steps=22, cap_steps=16):
     body_len = length - half_width
     pts = [(0.0, 0.0)]
@@ -299,10 +281,6 @@ def draw_sepals(cx, cy):
         draw_petal(cx, cy, a, 95, 12, SEPAL, "#1e4a1e", cup=2)
 
 
-# =========================================================
-# FULL ROSE BLOOM
-# =========================================================
-
 def draw_rose():
     cx, cy = 0, Y + 55
 
@@ -338,11 +316,6 @@ def draw_rose():
         draw_petal(cx, cy, a + i * 18, 20, 9, "#f0557a", "#c8375c", cup=3)
     screen.update()
 
-
-# =========================================================
-# ANIMATION
-# =========================================================
-
 draw_background()
 screen.update()
 time.sleep(0.4)
@@ -365,10 +338,6 @@ t.pencolor("#e7c9d6")
 t.goto(0, -430)
 t.write("ROSE", align="center", font=("Arial", 22, "bold"))
 screen.update()
-
-# =========================================================
-# RUN
-# =========================================================
 
 screen.tracer(0, 0)
 screen.mainloop()

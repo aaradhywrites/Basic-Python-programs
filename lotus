@@ -29,8 +29,8 @@ t.penup()
 # COLORS
 # =========================================================
 
-WATER = "#123f58"
-WATER_LINE = "#2c7a94"
+WATER = "#0EBDBD"
+WATER_LINE = "#083775"
 
 STEM = "#1f6b42"
 STEM_LIGHT = "#4ca866"
@@ -282,7 +282,7 @@ time.sleep(0.4)
 
 draw_lotus()
 
-t.pencolor("#9bc9d8")
+t.pencolor("#168dd1")
 t.goto(0, -450)
 t.write("LOTUS", align="center", font=("Arial", 22, "bold"))
 screen.update()
